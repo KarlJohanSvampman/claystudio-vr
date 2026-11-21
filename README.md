@@ -1,16 +1,18 @@
 # ClayStudio VR
 
-A PC-first stop-motion and 3D capture workbench, with VR as a spatial interface.
+A PC-first stop-motion and 3D capture workbench with VR as a spatial interface.
 
 ## MVP
-- React, TypeScript and Three.js desktop studio
-- FastAPI backend and OpenCV camera discovery
-- Stop-motion capture, onion skinning, frame timeline and playback
+- React + TypeScript + Three.js studio
+- FastAPI backend
+- External camera discovery through OpenCV
+- Stop-motion capture, onion skinning, timeline and playback
 - Later: guided photogrammetry, mesh processing and facial blendshape workflows
 
 ## Development
+Requirements: Node.js 20+, Python 3.11+.
 
-Backend: Python 3.11+
+Backend:
 ```bash
 cd backend
 python -m venv .venv
@@ -20,11 +22,11 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Frontend: Node.js 20+
+Frontend:
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-Frontend API base URL defaults to http://localhost:8000.
+The frontend defaults to API base URL http://localhost:8000.
