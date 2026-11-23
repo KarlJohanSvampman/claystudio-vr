@@ -42,7 +42,7 @@ export default function App() {
       if (!active) return
       const views = records.map(makeFrameView)
       setFrames(views)
-      setSelectedFrameId(views.at(-1)?.id ?? null)
+      setSelectedFrameId(views.length ? views[views.length - 1].id : null)
       setPlaybackIndex(0)
     }).catch(error => setCameraError(error instanceof Error ? error.message : 'Could not load saved frames'))
     return () => {
@@ -140,7 +140,7 @@ export default function App() {
     URL.revokeObjectURL(frame.url)
     const remaining = frames.filter(item => item.id !== frame.id)
     setFrames(remaining)
-    setSelectedFrameId(remaining.at(-1)?.id ?? null)
+    setSelectedFrameId(remaining.length ? remaining[remaining.length - 1].id : null)
   }
 
   function togglePlayback() {
