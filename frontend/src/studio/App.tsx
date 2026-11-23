@@ -24,7 +24,7 @@ export default function App() {
   const streamRef = useRef<MediaStream | null>(null)
 
   const selectedIndex = frames.findIndex(frame => frame.id === selectedFrameId)
-  const onionFrame = frames[selectedIndex > 0 ? selectedIndex - 1 : frames.length - 1]
+  const onionFrame = selectedIndex > 0 ? frames[selectedIndex - 1] : selectedIndex === 0 ? null : frames[frames.length - 1]
   const playbackFrame = frames[playbackIndex]
   const displayedPlaybackFrame = isPlaying ? playbackFrame : null
   const frameCountLabel = `${frames.length} ${frames.length === 1 ? 'FRAME' : 'FRAMES'}`
