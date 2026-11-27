@@ -144,3 +144,22 @@ def delete_scan(scan_id: str):
     path = _scan_dir(scan_id)
     shutil.rmtree(path)
     return {"deleted": True, "id": scan_id}
+
+
+@router.get("")
+def list_scans():
+    SCAN_ROOT.mkdir(parents=True, exist_ok=True)
+    scans = []
+    for manifest_path in SCAN_ROOT.glob("*/manifest.json"):
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            scans.append({
+                "id": manifest["id"],
+                "name": manifest["name"],
+                "created_at": manifest.get("created_at"),
+                "status": manifest.get("status", "capturing"),
+                "image_count": len(manifest.get("images", [])),
+            })
+        except (OSError, ValueError, KeyError):
+            continue
+    return sorted(scans, key=lambda item: item.get("created_at") or "", reverse=True)
