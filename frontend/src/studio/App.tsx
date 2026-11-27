@@ -35,7 +35,7 @@ export default function App() {
     fetch(`${API}/api/health`).then(response => {
       if (!response.ok) throw new Error('API unavailable')
       return response.json()
-    }).then(() => setApiStatus('Connected')).catch(() => setApiStatus('Offline'))
+    }).then(data => setApiStatus(data.colmap_available ? 'API · COLMAP READY' : 'API · COLMAP MISSING')).catch(() => setApiStatus('Offline'))
   }, [])
 
   useEffect(() => {
