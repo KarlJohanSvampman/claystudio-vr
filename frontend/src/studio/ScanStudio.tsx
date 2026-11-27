@@ -13,6 +13,8 @@ export function ScanStudio() {
   const [ring, setRing] = useState<Ring>('equator')
   const [step, setStep] = useState(0)
   const [cameraReady, setCameraReady] = useState(false)
+  const [cameraDevices, setCameraDevices] = useState<MediaDeviceInfo[]>([])
+  const [selectedCameraId, setSelectedCameraId] = useState('')
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('Create a scan session, connect a camera, then photograph the object from overlapping angles.')
   const [error, setError] = useState('')
@@ -87,24 +89,39 @@ export function ScanStudio() {
     } finally { setBusy(false) }
   }
 
-  async function connectCamera() {
+  async function refreshCameraDevices() {
+    if (!navigator.mediaDevices?.enumerateDevices) return
+    const devices = (await navigator.mediaDevices.enumerateDevices()).filter(device => device.kind === 'videoinput')
+    setCameraDevices(devices)
+    return devices
+  }
+
+  async function connectCamera(deviceId = selectedCameraId) {
     setError('')
     if (!navigator.mediaDevices?.getUserMedia) {
       setError('Camera access requires localhost or HTTPS in a supported browser.')
       return
     }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false,
-      })
+      const video: MediaTrackConstraints = { width: { ideal: 1920 }, height: { ideal: 1080 } }
+      if (deviceId) video.deviceId = { exact: deviceId }
+      const stream = await navigator.mediaDevices.getUserMedia({ video, audio: false })
       streamRef.current?.getTracks().forEach(track => track.stop())
       streamRef.current = stream
       if (videoRef.current) videoRef.current.srcObject = stream
+      const activeId = stream.getVideoTracks()[0]?.getSettings().deviceId ?? deviceId
+      if (activeId) setSelectedCameraId(activeId)
       setCameraReady(true)
+      await refreshCameraDevices()
       setMessage('Camera ready. Keep the object and lighting fixed; move the camera around it between captures.')
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not access camera')
     }
+  }
+
+  async function selectCamera(deviceId: string) {
+    setSelectedCameraId(deviceId)
+    if (cameraReady) await connectCamera(deviceId)
   }
 
   function disconnectCamera() {
@@ -113,6 +130,12 @@ export function ScanStudio() {
     if (videoRef.current) videoRef.current.srcObject = null
     setCameraReady(false)
   }
+
+  useEffect(() => {
+    const handleDeviceChange = () => { void refreshCameraDevices() }
+    navigator.mediaDevices?.addEventListener?.('devicechange', handleDeviceChange)
+    return () => navigator.mediaDevices?.removeEventListener?.('devicechange', handleDeviceChange)
+  }, [])
 
   async function captureView() {
     const video = videoRef.current
@@ -220,6 +243,14 @@ export function ScanStudio() {
             <video ref={videoRef} autoPlay muted playsInline/>
             {!cameraReady && <div className="camera-placeholder"><span>◎</span><strong>Camera not connected</strong><small>Connect a camera to capture scan views.</small></div>}
             <div className="scan-angle-marker"><span>{ring === 'equator' ? 'EQUATOR' : 'UPPER RING'}</span><strong>{String(angle).padStart(3, '0')}°</strong><small>VIEW {step + 1} / {ringSteps}</small></div>
+          </div>
+          <div className="camera-device-picker">
+            <label className="field-label" htmlFor="scan-camera-device">Camera input</label>
+            <select id="scan-camera-device" value={selectedCameraId} onChange={event => void selectCamera(event.target.value)}>
+              <option value="">Default camera</option>
+              {cameraDevices.map((device, index) => <option key={device.deviceId || index} value={device.deviceId}>{device.label || `Camera ${index + 1}`}</option>)}
+            </select>
+            <small className="muted">USB webcams, DSLR capture devices and other cameras appear here when exposed by your browser.</small>
           </div>
           <div className="camera-actions">
             {cameraReady
