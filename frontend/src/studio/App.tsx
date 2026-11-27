@@ -153,7 +153,7 @@ export default function App() {
 
   const timelineFrames = useMemo(() => frames.map((frame, index) => ({ ...frame, number: index + 1 })), [frames])
 
-  return <main className="app-shell">
+  return <main className={workspaceMode === 'scan' ? 'app-shell scan-mode' : 'app-shell'}>
     <header className="topbar">
       <div className="brand"><span className="brand-mark">C</span><div><strong>ClayStudio</strong><small>STOP MOTION · SCAN · SCULPT</small></div></div>
       <div className="project-title"><span>PROJECT</span><input aria-label="Project name" value={projectName} onChange={event => setProjectName(event.target.value)} /></div>
