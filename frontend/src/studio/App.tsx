@@ -117,6 +117,7 @@ export default function App() {
   }
 
   useEffect(() => {
+    void refreshCameraDevices()
     const handleDeviceChange = () => { void refreshCameraDevices() }
     navigator.mediaDevices?.addEventListener?.('devicechange', handleDeviceChange)
     return () => navigator.mediaDevices?.removeEventListener?.('devicechange', handleDeviceChange)
