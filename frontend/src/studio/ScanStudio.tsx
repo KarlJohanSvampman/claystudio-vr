@@ -225,7 +225,7 @@ export function ScanStudio() {
             {cameraReady
               ? <button className="secondary-button" onClick={disconnectCamera}>Disconnect camera</button>
               : <button className="secondary-button" onClick={connectCamera}>Connect camera</button>}
-            <button className="capture-button" onClick={captureView} disabled={!cameraReady || busy || scan.status === 'capture_complete'}>● Capture scan view</button>
+            <button className="capture-button" onClick={captureView} disabled={!cameraReady || busy || scan.status !== 'capturing'}>● Capture scan view</button>
           </div>
           {lastImage && <div className="last-capture"><img src={lastImage} alt="Last captured scan view"/><span>Last uploaded view</span></div>}
         </div>
@@ -246,6 +246,19 @@ export function ScanStudio() {
           <div className="scan-footer-actions">
             <button className="secondary-button" onClick={completeScan} disabled={busy || totalCount < 8 || scan.status === 'capture_complete'}>Finish photo set</button>
             <button className="capture-button" onClick={exportScan} disabled={busy || totalCount === 0}>Export photos (.zip)</button>
+          </div>
+          <div className="reconstruction-actions">
+            <div className="panel-heading">3D RECONSTRUCTION</div>
+            <p className="muted">{scan.reconstruction?.stage ?? 'Run COLMAP to estimate camera positions and generate a sparse 3D point cloud from the captured views.'}</p>
+            {scan.reconstruction?.status === 'failed' && <p className="error-message">{scan.reconstruction.error}</p>}
+            <button className="capture-button" onClick={startReconstruction} disabled={busy || totalCount < 8 || scan.reconstruction?.status === 'running' || scan.reconstruction?.status === 'queued'}>
+              {scan.reconstruction?.status === 'running' || scan.reconstruction?.status === 'queued' ? 'Reconstruction running…' : scan.reconstruction?.status === 'complete' ? 'Rebuild 3D point cloud' : 'Build 3D point cloud'}
+            </button>
+            {scan.reconstruction?.status === 'complete' && <>
+              <p className="muted">{scan.reconstruction.note}</p>
+              <a className="model-download" href={API + '/api/scans/' + scan.id + '/point-cloud'} download>Download point cloud (.ply)</a>
+              <PointCloudPreview key={scan.id} url={API + '/api/scans/' + scan.id + '/point-cloud'} />
+            </>}
           </div>
         </div>
       </div>
