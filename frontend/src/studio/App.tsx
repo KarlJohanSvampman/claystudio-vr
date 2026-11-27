@@ -17,6 +17,8 @@ export default function App() {
   const [frames, setFrames] = useState<FrameView[]>([])
   const [selectedFrameId, setSelectedFrameId] = useState<string | null>(null)
   const [cameraStatus, setCameraStatus] = useState('Camera disconnected')
+  const [cameraDevices, setCameraDevices] = useState<MediaDeviceInfo[]>([])
+  const [selectedCameraId, setSelectedCameraId] = useState('')
   const [cameraError, setCameraError] = useState('')
   const [onionOpacity, setOnionOpacity] = useState(35)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -72,24 +74,39 @@ export default function App() {
     streamRef.current?.getTracks().forEach(track => track.stop())
   }, [])
 
-  async function connectCamera() {
+  async function refreshCameraDevices() {
+    if (!navigator.mediaDevices?.enumerateDevices) return
+    const devices = (await navigator.mediaDevices.enumerateDevices()).filter(device => device.kind === 'videoinput')
+    setCameraDevices(devices)
+    return devices
+  }
+
+  async function connectCamera(deviceId = selectedCameraId) {
     setCameraError('')
     if (!navigator.mediaDevices?.getUserMedia) {
       setCameraError('Camera access requires a secure browser context (localhost or HTTPS).')
       return
     }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 1920 }, height: { ideal: 1080 }, facingMode: 'environment' },
-        audio: false,
-      })
+      const video: MediaTrackConstraints = { width: { ideal: 1920 }, height: { ideal: 1080 } }
+      if (deviceId) video.deviceId = { exact: deviceId }
+      else video.facingMode = 'environment'
+      const stream = await navigator.mediaDevices.getUserMedia({ video, audio: false })
       streamRef.current?.getTracks().forEach(track => track.stop())
       streamRef.current = stream
       if (videoRef.current) videoRef.current.srcObject = stream
+      const activeId = stream.getVideoTracks()[0]?.getSettings().deviceId ?? deviceId
+      if (activeId) setSelectedCameraId(activeId)
       setCameraStatus('Camera ready')
+      await refreshCameraDevices()
     } catch (error) {
       setCameraError(error instanceof Error ? error.message : 'Could not access camera')
     }
+  }
+
+  async function selectCamera(deviceId: string) {
+    setSelectedCameraId(deviceId)
+    if (cameraStatus === 'Camera ready') await connectCamera(deviceId)
   }
 
   function disconnectCamera() {
@@ -98,6 +115,12 @@ export default function App() {
     if (videoRef.current) videoRef.current.srcObject = null
     setCameraStatus('Camera disconnected')
   }
+
+  useEffect(() => {
+    const handleDeviceChange = () => { void refreshCameraDevices() }
+    navigator.mediaDevices?.addEventListener?.('devicechange', handleDeviceChange)
+    return () => navigator.mediaDevices?.removeEventListener?.('devicechange', handleDeviceChange)
+  }, [])
 
   async function captureFrame() {
     const video = videoRef.current
@@ -190,6 +213,14 @@ export default function App() {
           {!isPlaying && onionFrame && frames.length > 1 && <img className="onion-overlay" src={onionFrame.url} style={{ opacity: onionOpacity / 100 }} alt="Previous frame onion skin"/>}
           {cameraStatus !== 'Camera ready' && !isPlaying && <div className="camera-placeholder"><span>◎</span><strong>Camera not connected</strong><small>Connect a webcam or camera to begin.</small></div>}
           {isPlaying && <div className="playback-badge">PLAYBACK · {fps} FPS</div>}
+        </div>
+        <div className="camera-device-picker">
+          <label className="field-label" htmlFor="animation-camera-device">Camera input</label>
+          <select id="animation-camera-device" value={selectedCameraId} onChange={event => void selectCamera(event.target.value)}>
+            <option value="">Default camera</option>
+            {cameraDevices.map((device, index) => <option key={device.deviceId || index} value={device.deviceId}>{device.label || `Camera ${index + 1}`}</option>)}
+          </select>
+          <small className="muted">Choose a USB webcam, capture card or other browser-visible camera.</small>
         </div>
         <div className="camera-actions">
           {cameraStatus === 'Camera ready'
