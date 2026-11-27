@@ -2,7 +2,7 @@ import { Suspense, useMemo } from 'react'
 import { Canvas, useLoader } from '@react-three/fiber'
 import { Grid, OrbitControls } from '@react-three/drei'
 import { PLYLoader } from 'three/examples/jsm/loaders/PLYLoader'
-import type { BufferGeometry } from 'three'
+import { Vector3, type BufferGeometry } from 'three'
 
 function Cloud({ url }: { url: string }) {
   const loaded = useLoader(PLYLoader, url) as BufferGeometry
@@ -12,7 +12,7 @@ function Cloud({ url }: { url: string }) {
     copy.center()
     const bounds = copy.boundingBox
     if (bounds) {
-      const size = bounds.getSize({ x: 0, y: 0, z: 0 } as never)
+      const size = bounds.getSize(new Vector3())
       const maxDimension = Math.max(size.x, size.y, size.z, 0.001)
       copy.scale(2.6 / maxDimension, 2.6 / maxDimension, 2.6 / maxDimension)
     }
