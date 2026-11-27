@@ -185,7 +185,7 @@ export default function App() {
       <div className="status"><i className={apiStatus !== 'Offline' && apiStatus !== 'Checking…' ? 'online' : ''}/>API {apiStatus}</div>
     </header>
 
-    {workspaceMode === 'scan' ? <ScanStudio/> : <section className="workspace">
+    {workspaceMode === 'scan' ? <ScanStudio/> : <><section className="workspace">
       <aside className="left-panel">
         <div className="panel-heading">WORKSPACE</div>
         <button className={workspaceMode === 'animation' ? 'nav-item active' : 'nav-item'} onClick={() => setWorkspaceMode('animation')}>▣ <span>Animation Studio</span></button>
@@ -259,6 +259,6 @@ export default function App() {
         <select value={fps} onChange={event => setFps(Number(event.target.value))}><option value="8">8</option><option value="12">12</option><option value="15">15</option><option value="24">24</option><option value="30">30</option></select>
         <button onClick={togglePlayback} disabled={frames.length < 2}>{isPlaying ? 'Ⅱ PAUSE' : '▶ PLAY'}</button>
       </div>
-    </footer>}
+    </footer></>}
   </main>
 }
