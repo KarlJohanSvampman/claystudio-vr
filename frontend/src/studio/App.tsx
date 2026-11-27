@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { StudioViewport } from './StudioViewport'
+import { ScanStudio } from './ScanStudio'
 import { loadFrames, removeFrame, saveFrame, type StoredFrame } from './frameStore'
 
 type FrameView = StoredFrame & { url: string }
@@ -11,6 +12,7 @@ function makeFrameView(frame: StoredFrame): FrameView {
 
 export default function App() {
   const [apiStatus, setApiStatus] = useState('Checking…')
+  const [workspaceMode, setWorkspaceMode] = useState<'animation' | 'scan'>('animation')
   const [projectName, setProjectName] = useState('My first animation')
   const [frames, setFrames] = useState<FrameView[]>([])
   const [selectedFrameId, setSelectedFrameId] = useState<string | null>(null)
@@ -158,12 +160,12 @@ export default function App() {
       <div className="status"><i className={apiStatus === 'Connected' ? 'online' : ''}/>API {apiStatus}</div>
     </header>
 
-    <section className="workspace">
+    {workspaceMode === 'scan' ? <ScanStudio/> : <section className="workspace">
       <aside className="left-panel">
         <div className="panel-heading">WORKSPACE</div>
-        <button className="nav-item active">▣ <span>Animation Studio</span></button>
+        <button className={workspaceMode === 'animation' ? 'nav-item active' : 'nav-item'} onClick={() => setWorkspaceMode('animation')}>▣ <span>Animation Studio</span></button>
         <button className="nav-item" disabled>◉ <span>Capture Studio</span><em>SOON</em></button>
-        <button className="nav-item" disabled>⬡ <span>3D Workshop</span><em>SOON</em></button>
+        <button className={workspaceMode === 'scan' ? 'nav-item active' : 'nav-item'} onClick={() => setWorkspaceMode('scan')}>⬡ <span>3D Scanning</span></button>
         <button className="nav-item" disabled>☺ <span>Facial Studio</span><em>SOON</em></button>
         <div className="panel-divider"/>
         <div className="panel-heading">PROJECT</div>
@@ -224,6 +226,6 @@ export default function App() {
         <select value={fps} onChange={event => setFps(Number(event.target.value))}><option value="8">8</option><option value="12">12</option><option value="15">15</option><option value="24">24</option><option value="30">30</option></select>
         <button onClick={togglePlayback} disabled={frames.length < 2}>{isPlaying ? 'Ⅱ PAUSE' : '▶ PLAY'}</button>
       </div>
-    </footer>
+    </footer>}
   </main>
 }
