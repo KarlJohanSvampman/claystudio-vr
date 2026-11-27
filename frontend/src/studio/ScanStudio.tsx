@@ -30,8 +30,7 @@ export function ScanStudio() {
 
   useEffect(() => () => {
     streamRef.current?.getTracks().forEach(track => track.stop())
-    if (lastImage) URL.revokeObjectURL(lastImage)
-  }, [lastImage])
+  }, [])
 
   async function startScan() {
     setBusy(true); setError('')
