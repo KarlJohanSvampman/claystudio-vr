@@ -18,6 +18,7 @@ import numpy as np
 router = APIRouter(prefix="/scans", tags=["3D scanning"])
 SCAN_ROOT = Path("/storage/scans")
 MAX_IMAGES = 120
+MIN_RECONSTRUCTION_IMAGES = 12
 MAX_FILE_BYTES = 25 * 1024 * 1024
 ALLOWED_TYPES = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
 
@@ -163,8 +164,8 @@ def _run_colmap(scan_id: str) -> None:
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         image_count = len(manifest.get("images", []))
-        if image_count < 8:
-            raise RuntimeError("At least 8 images are required for reconstruction")
+        if image_count < MIN_RECONSTRUCTION_IMAGES:
+            raise RuntimeError(f"At least {MIN_RECONSTRUCTION_IMAGES} images are required for reconstruction")
         binary = shutil.which("colmap")
         if not binary:
             raise RuntimeError("COLMAP is not installed in the backend container. Rebuild with docker compose up --build.")
@@ -263,8 +264,8 @@ def _run_colmap(scan_id: str) -> None:
 def start_reconstruction(scan_id: str, background_tasks: BackgroundTasks):
     path = _scan_dir(scan_id)
     manifest = _read_manifest(path)
-    if len(manifest.get("images", [])) < 8:
-        raise HTTPException(status_code=400, detail="Capture at least 8 images before reconstruction")
+    if len(manifest.get("images", [])) < MIN_RECONSTRUCTION_IMAGES:
+        raise HTTPException(status_code=400, detail=f"Capture at least {MIN_RECONSTRUCTION_IMAGES} images before reconstruction")
     if manifest.get("reconstruction", {}).get("status") in {"queued", "running"}:
         raise HTTPException(status_code=409, detail="Reconstruction is already queued or running")
     if manifest.get("status") == "capturing":
