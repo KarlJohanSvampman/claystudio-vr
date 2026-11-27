@@ -244,7 +244,7 @@ export function ScanStudio() {
           <p className="muted scan-instruction">{message}</p>
           <div className="scan-tips"><strong>For a good reconstruction</strong><ul><li>Use soft, even lighting; avoid moving shadows.</li><li>Choose a matte object with visible surface texture.</li><li>Keep the object stationary; move the camera around it and avoid changing zoom.</li><li>Overlap adjacent views by roughly 60–80%.</li><li>Use a plain, non-reflective background.</li></ul></div>
           <div className="scan-footer-actions">
-            <button className="secondary-button" onClick={completeScan} disabled={busy || totalCount < 8 || scan.status === 'capture_complete'}>Finish photo set</button>
+            <button className="secondary-button" onClick={completeScan} disabled={busy || totalCount < 8 || scan.status !== 'capturing'}>Finish photo set</button>
             <button className="capture-button" onClick={exportScan} disabled={busy || totalCount === 0}>Export photos (.zip)</button>
           </div>
           <div className="reconstruction-actions">
