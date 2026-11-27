@@ -35,3 +35,55 @@
 .frame-thumb span{position:absolute;right:3px;bottom:3px;padding:1px 4px;border-radius:3px;background:#101418d9;color:#fff;font-size:8px}
 .timeline-controls button{cursor:pointer}
 @media(max-width:1100px){.workspace{grid-template-columns:185px minmax(300px,1fr) 215px}.timeline{grid-template-columns:95px minmax(0,1fr) 155px;gap:9px;padding:12px}.project-title input{width:180px}}
+
+
+/* Workspace mode switch */
+.mode-switch{display:flex;gap:4px;padding:4px;border:1px solid #343c44;border-radius:6px;background:#111519}
+.mode-button{border:0;border-radius:4px;background:transparent;color:#9da5ad;padding:7px 10px;font-size:10px}
+.mode-button.active{background:#34302c;color:#f0b18a}
+.scan-studio{min-height:0;overflow:auto;padding:22px 26px;background:#14181d}
+.scan-header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:20px}
+.scan-header h2{font-size:19px;margin:0 0 5px;font-weight:650}
+.scan-header p{margin:0}
+.scan-workspace{display:grid;grid-template-columns:minmax(300px,1.3fr) minmax(290px,.9fr);gap:20px;max-width:1200px;margin:0 auto}
+.scan-camera-column,.scan-guide{min-width:0}
+.scan-camera-preview{position:relative;aspect-ratio:4/3;max-height:560px;overflow:hidden;border:1px solid #414951;border-radius:8px;background:#080a0c}
+.scan-camera-preview video{width:100%;height:100%;object-fit:contain;display:block}
+.scan-angle-marker{position:absolute;left:12px;top:12px;display:flex;flex-direction:column;gap:3px;padding:9px 11px;border:1px solid #59636c;border-radius:5px;background:#111820d9}
+.scan-angle-marker span,.scan-angle-marker small{font-size:8px;letter-spacing:.12em;color:#a4adb5}
+.scan-angle-marker strong{font-size:23px;color:#f0b18a;font-variant-numeric:tabular-nums}
+.scan-camera-column .camera-actions{grid-template-columns:1fr 1.2fr}
+.last-capture{display:flex;align-items:center;gap:10px;margin-top:12px;color:#929ba5;font-size:10px}
+.last-capture img{width:90px;height:64px;object-fit:cover;border:1px solid #414951;border-radius:4px}
+.scan-guide{padding:17px;border:1px solid #343c44;border-radius:8px;background:#1a1f25}
+.scan-progress{margin:14px 0}
+.scan-progress>div:first-child{display:flex;justify-content:space-between;color:#bfc5ca;font-size:10px;margin-bottom:7px}
+.scan-progress strong{color:#e3aa86;font-variant-numeric:tabular-nums}
+.progress-track{height:6px;background:#303840;border-radius:9px;overflow:hidden}
+.progress-track i{display:block;height:100%;background:#d29470;border-radius:9px;transition:width .2s}
+.ring-selector{display:flex;gap:7px;margin:18px 0 4px}
+.ring-choice{flex:1;border:1px solid #454e57;border-radius:5px;background:#20262c;color:#aeb5bc;padding:9px 6px;font-size:10px}
+.ring-choice.active{border-color:#bd8969;color:#f0b18a;background:#34302c}
+.angle-wheel{position:relative;width:190px;height:190px;margin:12px auto 8px;border:1px dashed #4b555f;border-radius:50%;background:radial-gradient(circle,#222930 0 35%,transparent 36%)}
+.angle-wheel:before{content:"";position:absolute;inset:18px;border:1px solid #353e47;border-radius:50%}
+.angle-dot{position:absolute;left:calc(50% - 5px);top:calc(50% - 5px);width:10px;height:10px;border-radius:50%;background:#59636c}
+.angle-dot.done{background:#83b995}
+.angle-dot.current{background:#e5a47c;box-shadow:0 0 0 4px #e5a47c33}
+.angle-wheel-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.angle-wheel-center strong{font-size:26px;font-variant-numeric:tabular-nums}
+.angle-wheel-center small{font-size:8px;color:#89939d;letter-spacing:.14em}
+.scan-instruction{min-height:48px;padding:10px;background:#151a1f;border-radius:5px}
+.scan-tips{margin-top:14px;color:#aeb5bc;font-size:10px;line-height:1.65}
+.scan-tips strong{color:#d9dee2}
+.scan-tips ul{padding-left:17px;margin:7px 0}
+.scan-tips li{margin:3px 0}
+.scan-footer-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:15px}
+.scan-session-footer{display:flex;justify-content:space-between;gap:12px;max-width:1200px;margin:14px auto 0;color:#78838d;font-size:9px;letter-spacing:.06em}
+.scan-start-card{max-width:480px;margin:7vh auto;padding:26px;border:1px solid #3a424b;border-radius:9px;background:#1a1f25;text-align:center}
+.scan-start-icon{font-size:34px;color:#d29470}
+.scan-start-card h3{margin:8px 0;font-size:17px}
+.scan-start-card p{color:#929ba5;font-size:11px;line-height:1.6}
+.scan-start-card input{width:100%;background:#111519;border:1px solid #3a424b;border-radius:5px;color:#e7e9eb;padding:10px;font-size:12px;margin-bottom:12px}
+.scan-start-card .capture-button{margin-top:8px}
+@media(max-width:1000px){.scan-workspace{grid-template-columns:1fr}.scan-camera-preview{max-height:none}.scan-studio{padding:16px}.scan-guide{max-width:none}}
+@media(max-width:700px){.mode-switch{display:none}.scan-header{flex-direction:column}.scan-session-footer{flex-direction:column}.scan-camera-column .camera-actions{grid-template-columns:1fr}}
