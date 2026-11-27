@@ -1,5 +1,8 @@
-FROM python:3.11-slim
+FROM python:3.11-slim-bookworm
+ENV DEBIAN_FRONTEND=noninteractive
+ENV QT_QPA_PLATFORM=offscreen
 WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends colmap && rm -rf /var/lib/apt/lists/*
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
