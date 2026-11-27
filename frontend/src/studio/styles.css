@@ -99,3 +99,6 @@
 .point-cloud-label{position:absolute;left:10px;bottom:9px;padding:5px 7px;border-radius:4px;background:#10151ad9;color:#aeb8c1;font-size:8px;letter-spacing:.1em;pointer-events:none}
 .model-download{display:inline-block;margin:5px 0 12px;color:#e3aa86;font-size:10px;text-decoration:none;border-bottom:1px solid #8a624c;padding-bottom:3px}
 .model-download:hover{color:#f2c19e}
+
+/* Camera input selection */
+.camera-device-picker{margin-top:10px;padding:9px;border:1px solid #343c44;border-radius:6px;background:#171c21}.camera-device-picker select{display:block;width:100%;padding:9px;background:#111519;border:1px solid #454e57;border-radius:5px;color:#e0e4e8;font-size:11px}.camera-device-picker small{display:block;margin-top:6px;font-size:9px;line-height:1.45}
