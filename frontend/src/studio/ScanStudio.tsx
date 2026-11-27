@@ -132,7 +132,7 @@ export function ScanStudio() {
       setLastImage(previewUrl)
       const nextStep = (step + 1) % ringSteps
       setStep(nextStep)
-      setMessage(`Saved view at ${angle}°. Rotate the object approximately ${Math.round(360 / ringSteps)}° for the next overlapping view.`)
+      setMessage(result.quality_warning || `Saved view at ${angle}°. Rotate the object approximately ${Math.round(360 / ringSteps)}° for the next overlapping view.`)
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Capture failed')
     } finally { setBusy(false) }
