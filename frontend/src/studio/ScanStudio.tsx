@@ -126,6 +126,7 @@ export function ScanStudio() {
       }
       const result = await response.json()
       setScan(current => current ? { ...current, images: [...current.images, result.image] } : current)
+      setSavedScans(current => current.map(item => item.id === scan.id ? { ...item, image_count: result.image_count } : item))
       if (lastImageUrlRef.current) URL.revokeObjectURL(lastImageUrlRef.current)
       const previewUrl = URL.createObjectURL(blob)
       lastImageUrlRef.current = previewUrl
