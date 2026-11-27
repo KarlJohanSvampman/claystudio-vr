@@ -5,14 +5,23 @@ A PC-first stop-motion and 3D capture workbench with VR as a spatial interface.
 ## Current MVP
 - React + TypeScript + Three.js studio worktable
 - FastAPI backend and health endpoint
-- Browser camera connection through `getUserMedia` (works with a webcam or supported camera exposed to the browser)
-- Capture still frames from the live camera preview
-- Local IndexedDB frame storage, grouped by project name
-- Timeline thumbnails, frame selection and deletion
-- Onion-skin overlay using the previous frame
-- Basic frame playback at selectable 8, 12, 15, 24 or 30 FPS
+- Browser camera access through `getUserMedia`
+- Stop-motion capture, local IndexedDB storage, timeline, onion skin and playback
+- Guided photogrammetry capture studio with 24 equator views and 12 elevated views
+- Scan sessions and uploaded photographs stored under `/storage/scans`
+- Export complete scan photo sets as ZIP archives with angle metadata and a manifest
 
-Captured frames are stored in the current browser profile on the current machine. They are not uploaded to the backend or synchronized between devices. Camera access requires localhost or HTTPS and browser permission.
+### 3D scanning workflow
+1. Open **3D Scan** in the desktop workspace.
+2. Create a scan session and connect a webcam or supported camera.
+3. Keep the camera, focus and lighting fixed. Place a textured, matte object in view.
+4. Capture the 24 equator positions, rotating the object by about 15 degrees between shots.
+5. Capture the optional 12 elevated views, tilting the object or changing its elevation while keeping overlap.
+6. Finish the photo set and export the ZIP archive.
+
+The current scanning milestone acquires, stores and packages photogrammetry images. It does **not yet** calculate camera poses, generate a point cloud or create a mesh inside ClayStudio. Use the exported images with a photogrammetry tool such as COLMAP or Meshroom until the integrated reconstruction pipeline is implemented. Reflective, transparent, textureless or moving objects are difficult to reconstruct. Use diffuse lighting, a stable background and roughly 60–80% overlap between adjacent photos.
+
+Scan photographs are stored on the backend host in the Docker-mounted `./storage/scans` directory. Stop-motion frames remain in the browser's IndexedDB storage.
 
 ## Development
 Requirements: Node.js 20+, Python 3.11+.
@@ -41,4 +50,4 @@ From the repository root:
 ```bash
 docker compose up --build
 ```
-The frontend development container installs dependencies on startup because its source directory is bind-mounted into the container. Open http://localhost:5173.
+Open http://localhost:5173.
