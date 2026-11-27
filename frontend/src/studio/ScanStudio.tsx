@@ -250,7 +250,7 @@ export function ScanStudio() {
           <div className="reconstruction-actions">
             <div className="panel-heading">3D RECONSTRUCTION</div>
             <p className="muted">{scan.reconstruction?.stage ?? 'Run COLMAP to estimate camera positions and generate a sparse 3D point cloud from the captured views.'}</p>
-            {scan.reconstruction?.status === 'failed' && <p className="error-message">{scan.reconstruction.error}</p>}
+            {scan.reconstruction?.status === 'failed' && <><p className="error-message">{scan.reconstruction.error}</p><a className="model-download" href={API + '/api/scans/' + scan.id + '/reconstruction-log'} target="_blank" rel="noreferrer">Open reconstruction log</a></>}
             <button className="capture-button" onClick={startReconstruction} disabled={busy || totalCount < 8 || scan.reconstruction?.status === 'running' || scan.reconstruction?.status === 'queued'}>
               {scan.reconstruction?.status === 'running' || scan.reconstruction?.status === 'queued' ? 'Reconstruction running…' : scan.reconstruction?.status === 'complete' ? 'Rebuild 3D point cloud' : 'Build 3D point cloud'}
             </button>
