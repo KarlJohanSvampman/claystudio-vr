@@ -3,7 +3,7 @@ import { PointCloudPreview } from './PointCloudPreview'
 
 const API = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 type Ring = 'equator' | 'upper'
-type ScanManifest = { id: string; name: string; status: string; images: Array<{ filename: string; angle: number; ring: string }>; reconstruction?: { status: string; stage?: string; error?: string; note?: string } }
+type ScanManifest = { id: string; name: string; status: string; images: Array<{ filename: string; angle: number; ring: string }>; reconstruction?: { status: string; stage?: string; error?: string; note?: string; completed_at?: string } }
 type SavedScan = { id: string; name: string; status: string; image_count: number; created_at: string }
 
 export function ScanStudio() {
@@ -101,7 +101,7 @@ export function ScanStudio() {
       streamRef.current = stream
       if (videoRef.current) videoRef.current.srcObject = stream
       setCameraReady(true)
-      setMessage('Camera ready. Keep the camera and lighting fixed; rotate the object between captures.')
+      setMessage('Camera ready. Keep the object and lighting fixed; move the camera around it between captures.')
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not access camera')
     }
@@ -144,7 +144,7 @@ export function ScanStudio() {
       setLastImage(previewUrl)
       const nextStep = (step + 1) % ringSteps
       setStep(nextStep)
-      setMessage(result.quality_warning || `Saved view at ${angle}°. Rotate the object approximately ${Math.round(360 / ringSteps)}° for the next overlapping view.`)
+      setMessage(result.quality_warning || `Saved view at ${angle}°. Move the camera approximately ${Math.round(360 / ringSteps)}° around the stationary object for the next overlapping view.`)
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Capture failed')
     } finally { setBusy(false) }
@@ -208,7 +208,7 @@ export function ScanStudio() {
     {!scan ? <div className="scan-start-card">
       <div className="scan-start-icon">⬡</div>
       <h3>Start a new scan</h3>
-      <p>Place a textured object on a steady surface. Keep the camera fixed and rotate the object between photographs.</p>
+      <p>Place a textured object on a steady surface. Keep the object still and move the camera around it between photographs.</p>
       <label className="field-label" htmlFor="scan-name">Scan name</label>
       <input id="scan-name" value={scanName} onChange={event => setScanName(event.target.value)} maxLength={120}/>
       <button className="capture-button" onClick={startScan} disabled={busy}>Create scan session</button>
@@ -242,7 +242,7 @@ export function ScanStudio() {
             <div className="angle-wheel-center"><strong>{totalCount}</strong><small>PHOTOS</small></div>
           </div>
           <p className="muted scan-instruction">{message}</p>
-          <div className="scan-tips"><strong>For a good reconstruction</strong><ul><li>Use soft, even lighting; avoid moving shadows.</li><li>Choose a matte object with visible surface texture.</li><li>Keep the object fully in frame and avoid changing zoom.</li><li>Overlap adjacent views by roughly 60–80%.</li><li>Use a plain, non-reflective background.</li></ul></div>
+          <div className="scan-tips"><strong>For a good reconstruction</strong><ul><li>Use soft, even lighting; avoid moving shadows.</li><li>Choose a matte object with visible surface texture.</li><li>Keep the object stationary; move the camera around it and avoid changing zoom.</li><li>Overlap adjacent views by roughly 60–80%.</li><li>Use a plain, non-reflective background.</li></ul></div>
           <div className="scan-footer-actions">
             <button className="secondary-button" onClick={completeScan} disabled={busy || totalCount < 8 || scan.status === 'capture_complete'}>Finish photo set</button>
             <button className="capture-button" onClick={exportScan} disabled={busy || totalCount === 0}>Export photos (.zip)</button>
@@ -257,7 +257,7 @@ export function ScanStudio() {
             {scan.reconstruction?.status === 'complete' && <>
               <p className="muted">{scan.reconstruction.note}</p>
               <a className="model-download" href={API + '/api/scans/' + scan.id + '/point-cloud'} download>Download point cloud (.ply)</a>
-              <PointCloudPreview key={scan.id} url={API + '/api/scans/' + scan.id + '/point-cloud'} />
+              <PointCloudPreview key={scan.id + (scan.reconstruction.completed_at ?? '')} url={API + '/api/scans/' + scan.id + '/point-cloud?v=' + encodeURIComponent(scan.reconstruction.completed_at ?? '')} />
             </>}
           </div>
         </div>
