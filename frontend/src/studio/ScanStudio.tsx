@@ -178,6 +178,7 @@ export function ScanStudio() {
       <div><div className="panel-heading">3D WORKSHOP / PHOTOGRAMMETRY</div><h2>Object scanning</h2><p className="muted">Capture a set of overlapping photographs to reconstruct a 3D object.</p></div>
       <span className="stage-badge">DESKTOP SCAN MODE</span>
     </div>
+    <div className="scan-notice"><strong>Photogrammetry capture</strong><span>This milestone captures and packages the photo set. Automatic point-cloud and mesh reconstruction is the next scanning milestone; export the ZIP to process the images in COLMAP or Meshroom in the meantime.</span></div>
     {!scan ? <div className="scan-start-card">
       <div className="scan-start-icon">⬡</div>
       <h3>Start a new scan</h3>
