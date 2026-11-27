@@ -11,6 +11,8 @@ from uuid import uuid4
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
+import cv2
+import numpy as np
 
 router = APIRouter(prefix="/scans", tags=["3D scanning"])
 SCAN_ROOT = Path("/storage/scans")
@@ -84,6 +86,13 @@ async def upload_scan_image(
         raise HTTPException(status_code=413, detail="Image exceeds the 25 MB limit")
     if len(content) < 128:
         raise HTTPException(status_code=400, detail="Image file is too small or empty")
+    decoded = cv2.imdecode(np.frombuffer(content, dtype=np.uint8), cv2.IMREAD_COLOR)
+    if decoded is None:
+        raise HTTPException(status_code=400, detail="Uploaded file is not a readable image")
+    height, width = decoded.shape[:2]
+    if width < 320 or height < 240:
+        raise HTTPException(status_code=400, detail="Scan images must be at least 320 x 240 pixels")
+    sharpness = round(float(cv2.Laplacian(cv2.cvtColor(decoded, cv2.COLOR_BGR2GRAY), cv2.CV_64F).var()), 2)
 
     image_id = str(uuid4())
     filename = f"{len(manifest['images']) + 1:03d}_{ring}_{angle:03d}_{image_id[:8]}{suffix}"
@@ -94,13 +103,17 @@ async def upload_scan_image(
         "angle": angle,
         "ring": ring,
         "bytes": len(content),
+        "width": width,
+        "height": height,
+        "sharpness_score": sharpness,
+        "quality_warning": "Image may be blurred; keep the camera or object steady." if sharpness < 35 else None,
         "content_type": file.content_type,
         "captured_at": datetime.now(timezone.utc).isoformat(),
     }
     manifest["images"].append(record)
     manifest["updated_at"] = datetime.now(timezone.utc).isoformat()
     _write_manifest(path, manifest)
-    return {"image": record, "image_count": len(manifest["images"])}
+    return {"image": record, "image_count": len(manifest["images"]), "quality_warning": record["quality_warning"]}
 
 
 @router.post("/{scan_id}/complete")
