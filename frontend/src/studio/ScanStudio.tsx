@@ -3,10 +3,12 @@ import { useEffect, useRef, useState } from 'react'
 const API = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 type Ring = 'equator' | 'upper'
 type ScanManifest = { id: string; name: string; status: string; images: Array<{ filename: string; angle: number; ring: string }> }
+type SavedScan = { id: string; name: string; status: string; image_count: number; created_at: string }
 
 export function ScanStudio() {
   const [scanName, setScanName] = useState('ClayStudio scan')
   const [scan, setScan] = useState<ScanManifest | null>(null)
+  const [savedScans, setSavedScans] = useState<SavedScan[]>([])
   const [ring, setRing] = useState<Ring>('equator')
   const [step, setStep] = useState(0)
   const [cameraReady, setCameraReady] = useState(false)
@@ -16,6 +18,7 @@ export function ScanStudio() {
   const [lastImage, setLastImage] = useState<string | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  const lastImageUrlRef = useRef<string | null>(null)
 
   const ringSteps = ring === 'equator' ? 24 : 12
   const angle = Math.round(step * (360 / ringSteps))
@@ -25,11 +28,16 @@ export function ScanStudio() {
   const upperCount = scan?.images.filter(image => image.ring === 'upper').length ?? 0
 
   useEffect(() => {
+    fetch(API + '/api/scans').then(response => response.ok ? response.json() : []).then(setSavedScans).catch(() => setSavedScans([]))
+  }, [])
+
+  useEffect(() => {
     if (videoRef.current && streamRef.current) videoRef.current.srcObject = streamRef.current
   }, [cameraReady])
 
   useEffect(() => () => {
     streamRef.current?.getTracks().forEach(track => track.stop())
+    if (lastImageUrlRef.current) URL.revokeObjectURL(lastImageUrlRef.current)
   }, [])
 
   async function startScan() {
@@ -40,11 +48,31 @@ export function ScanStudio() {
         body: JSON.stringify({ name: scanName.trim() || 'Untitled scan' }),
       })
       if (!response.ok) throw new Error((await response.json()).detail ?? 'Could not create scan session')
-      setScan(await response.json())
+      const created = await response.json() as ScanManifest
+      setScan(created)
+      setSavedScans(current => [{ id: created.id, name: created.name, status: created.status, image_count: 0, created_at: new Date().toISOString() }, ...current])
       setRing('equator'); setStep(0)
       setMessage('Scan session created. Connect your camera and follow the angle guide.')
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not create scan')
+    } finally { setBusy(false) }
+  }
+
+  async function resumeScan(id: string) {
+    setBusy(true); setError('')
+    try {
+      const response = await fetch(API + '/api/scans/' + id)
+      if (!response.ok) throw new Error('Could not open saved scan')
+      const loaded = await response.json() as ScanManifest
+      setScan(loaded)
+      const equator = loaded.images.filter(image => image.ring === 'equator').length
+      const upper = loaded.images.filter(image => image.ring === 'upper').length
+      const nextRing: Ring = equator < 24 ? 'equator' : 'upper'
+      setRing(nextRing)
+      setStep(nextRing === 'equator' ? equator % 24 : upper % 12)
+      setMessage('Saved scan reopened. Continue capturing or export the photo set.')
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not reopen scan')
     } finally { setBusy(false) }
   }
 
@@ -98,8 +126,10 @@ export function ScanStudio() {
       }
       const result = await response.json()
       setScan(current => current ? { ...current, images: [...current.images, result.image] } : current)
-      if (lastImage) URL.revokeObjectURL(lastImage)
-      setLastImage(URL.createObjectURL(blob))
+      if (lastImageUrlRef.current) URL.revokeObjectURL(lastImageUrlRef.current)
+      const previewUrl = URL.createObjectURL(blob)
+      lastImageUrlRef.current = previewUrl
+      setLastImage(previewUrl)
       const nextStep = (step + 1) % ringSteps
       setStep(nextStep)
       setMessage(`Saved view at ${angle}°. Rotate the object approximately ${Math.round(360 / ringSteps)}° for the next overlapping view.`)
@@ -117,7 +147,9 @@ export function ScanStudio() {
         const body = await response.json().catch(() => ({}))
         throw new Error(body.detail ?? 'Could not complete scan')
       }
-      setScan(await response.json())
+      const completed = await response.json() as ScanManifest
+      setScan(completed)
+      setSavedScans(current => current.map(item => item.id === completed.id ? { ...item, status: completed.status, image_count: completed.images.length } : item))
       setMessage('Photo set complete and saved on the ClayStudio host. Export it for photogrammetry reconstruction.')
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not complete scan')
@@ -153,6 +185,7 @@ export function ScanStudio() {
       <label className="field-label" htmlFor="scan-name">Scan name</label>
       <input id="scan-name" value={scanName} onChange={event => setScanName(event.target.value)} maxLength={120}/>
       <button className="capture-button" onClick={startScan} disabled={busy}>Create scan session</button>
+      {savedScans.length > 0 && <div className="saved-scans"><div className="panel-heading">SAVED SCAN SESSIONS</div>{savedScans.map(item => <button key={item.id} className="saved-scan-row" onClick={() => resumeScan(item.id)} disabled={busy}><span><strong>{item.name}</strong><small>{item.image_count} photos · {item.status.replace("_", " ")}</small></span><em>OPEN →</em></button>)}</div>}
     </div> : <>
       <div className="scan-workspace">
         <div className="scan-camera-column">
@@ -174,8 +207,8 @@ export function ScanStudio() {
           <div className="scan-progress"><div><span>Equator ring</span><strong>{equatorCount} / 24</strong></div><div className="progress-track"><i style={{ width: `${Math.min(100, equatorCount / 24 * 100)}%` }}/></div></div>
           <div className="scan-progress"><div><span>Upper ring</span><strong>{upperCount} / 12</strong></div><div className="progress-track"><i style={{ width: `${Math.min(100, upperCount / 12 * 100)}%` }}/></div></div>
           <div className="ring-selector">
-            <button className={ring === 'equator' ? 'ring-choice active' : 'ring-choice'} onClick={() => { setRing('equator'); setStep(0) }}>Equator · 15° steps</button>
-            <button className={ring === 'upper' ? 'ring-choice active' : 'ring-choice'} onClick={() => { setRing('upper'); setStep(0) }}>Upper · 30° steps</button>
+            <button className={ring === 'equator' ? 'ring-choice active' : 'ring-choice'} onClick={() => { setRing('equator'); setStep(equatorCount % 24) }}>Equator · 15° steps</button>
+            <button className={ring === 'upper' ? 'ring-choice active' : 'ring-choice'} onClick={() => { setRing('upper'); setStep(upperCount % 12) }}>Upper · 30° steps</button>
           </div>
           <div className="angle-wheel" aria-label={`Capture position ${angle} degrees`}>
             {Array.from({ length: ringSteps }, (_, index) => <span key={index} className={index < ringCount ? 'angle-dot done' : index === step ? 'angle-dot current' : 'angle-dot'} style={{ transform: `rotate(${index * 360 / ringSteps}deg) translateY(-75px)` }}/>)}
