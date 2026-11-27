@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
+import { PointCloudPreview } from './PointCloudPreview'
 
 const API = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 type Ring = 'equator' | 'upper'
-type ScanManifest = { id: string; name: string; status: string; images: Array<{ filename: string; angle: number; ring: string }> }
+type ScanManifest = { id: string; name: string; status: string; images: Array<{ filename: string; angle: number; ring: string }>; reconstruction?: { status: string; stage?: string; error?: string; note?: string } }
 type SavedScan = { id: string; name: string; status: string; image_count: number; created_at: string }
 
 export function ScanStudio() {
@@ -30,6 +31,16 @@ export function ScanStudio() {
   useEffect(() => {
     fetch(API + '/api/scans').then(response => response.ok ? response.json() : []).then(setSavedScans).catch(() => setSavedScans([]))
   }, [])
+
+  useEffect(() => {
+    if (!scan?.id || scan.reconstruction?.status !== 'running' && scan.reconstruction?.status !== 'queued') return
+    const timer = window.setInterval(() => {
+      fetch(API + '/api/scans/' + scan.id).then(response => response.ok ? response.json() : null).then((updated: ScanManifest | null) => {
+        if (updated) setScan(updated)
+      }).catch(() => undefined)
+    }, 4000)
+    return () => window.clearInterval(timer)
+  }, [scan?.id, scan?.reconstruction?.status])
 
   useEffect(() => {
     if (videoRef.current && streamRef.current) videoRef.current.srcObject = streamRef.current
@@ -157,6 +168,20 @@ export function ScanStudio() {
     } finally { setBusy(false) }
   }
 
+  async function startReconstruction() {
+    if (!scan) return
+    setBusy(true); setError('')
+    try {
+      const response = await fetch(API + '/api/scans/' + scan.id + '/reconstruct', { method: 'POST' })
+      const body = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(body.detail ?? 'Could not start reconstruction')
+      setScan(body as ScanManifest)
+      setMessage('Reconstruction queued. COLMAP is extracting features, matching views and solving camera positions. This can take several minutes.')
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not start reconstruction')
+    } finally { setBusy(false) }
+  }
+
   async function exportScan() {
     if (!scan) return
     setBusy(true); setError('')
@@ -179,7 +204,7 @@ export function ScanStudio() {
       <div><div className="panel-heading">3D WORKSHOP / PHOTOGRAMMETRY</div><h2>Object scanning</h2><p className="muted">Capture a set of overlapping photographs to reconstruct a 3D object.</p></div>
       <span className="stage-badge">DESKTOP SCAN MODE</span>
     </div>
-    <div className="scan-notice"><strong>Photogrammetry capture</strong><span>This milestone captures and packages the photo set. Automatic point-cloud and mesh reconstruction is the next scanning milestone; export the ZIP to process the images in COLMAP or Meshroom in the meantime.</span></div>
+    <div className="scan-notice"><strong>Photogrammetry capture</strong><span>Capture overlapping photographs, then run CPU-based COLMAP reconstruction to estimate camera poses and create a sparse colored point cloud. Dense surface and textured mesh generation will follow in a later GPU-enabled milestone.</span></div>
     {!scan ? <div className="scan-start-card">
       <div className="scan-start-icon">⬡</div>
       <h3>Start a new scan</h3>
