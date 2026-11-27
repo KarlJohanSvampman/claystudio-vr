@@ -79,6 +79,8 @@ async def upload_scan_image(
     manifest = _read_manifest(path)
     if manifest.get("status") != "capturing":
         raise HTTPException(status_code=409, detail="This scan is no longer accepting images")
+    if ring not in {"equator", "upper"}:
+        raise HTTPException(status_code=400, detail="Ring must be equator or upper")
     if len(manifest["images"]) >= MAX_IMAGES:
         raise HTTPException(status_code=413, detail=f"A scan can contain at most {MAX_IMAGES} images")
     suffix = ALLOWED_TYPES.get(file.content_type or "")
@@ -169,6 +171,8 @@ def _run_colmap(scan_id: str) -> None:
 
         images_dir = path / "images"
         work_dir = path / "reconstruction"
+        if work_dir.exists():
+            shutil.rmtree(work_dir)
         sparse_dir = work_dir / "sparse"
         sparse_dir.mkdir(parents=True, exist_ok=True)
         database = work_dir / "database.db"
@@ -176,7 +180,8 @@ def _run_colmap(scan_id: str) -> None:
         commands = [
             ("Feature extraction", [
                 binary, "feature_extractor", "--database_path", str(database),
-                "--image_path", str(images_dir), "--FeatureExtraction.use_gpu", "0",
+                "--image_path", str(images_dir), "--ImageReader.single_camera", "1",
+                "--FeatureExtraction.use_gpu", "0",
                 "--SiftExtraction.max_num_features", "8192",
             ]),
             ("Feature matching", [
@@ -260,8 +265,8 @@ def start_reconstruction(scan_id: str, background_tasks: BackgroundTasks):
     manifest = _read_manifest(path)
     if len(manifest.get("images", [])) < 8:
         raise HTTPException(status_code=400, detail="Capture at least 8 images before reconstruction")
-    if manifest.get("reconstruction", {}).get("status") == "running":
-        raise HTTPException(status_code=409, detail="Reconstruction is already running")
+    if manifest.get("reconstruction", {}).get("status") in {"queued", "running"}:
+        raise HTTPException(status_code=409, detail="Reconstruction is already queued or running")
     if manifest.get("status") == "capturing":
         manifest["status"] = "capture_complete"
     manifest["status"] = "reconstructing"
