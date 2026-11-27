@@ -158,7 +158,7 @@ export default function App() {
       <div className="brand"><span className="brand-mark">C</span><div><strong>ClayStudio</strong><small>STOP MOTION · SCAN · SCULPT</small></div></div>
       <div className="project-title"><span>PROJECT</span><input aria-label="Project name" value={projectName} onChange={event => setProjectName(event.target.value)} /></div>
       <div className="mode-switch"><button className={workspaceMode === 'animation' ? 'mode-button active' : 'mode-button'} onClick={() => setWorkspaceMode('animation')}>Animation</button><button className={workspaceMode === 'scan' ? 'mode-button active' : 'mode-button'} onClick={() => setWorkspaceMode('scan')}>3D Scan</button></div>
-      <div className="status"><i className={apiStatus === 'Connected' ? 'online' : ''}/>API {apiStatus}</div>
+      <div className="status"><i className={apiStatus !== 'Offline' && apiStatus !== 'Checking…' ? 'online' : ''}/>API {apiStatus}</div>
     </header>
 
     {workspaceMode === 'scan' ? <ScanStudio/> : <section className="workspace">
