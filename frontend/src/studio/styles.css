@@ -86,4 +86,6 @@
 .scan-start-card input{width:100%;background:#111519;border:1px solid #3a424b;border-radius:5px;color:#e7e9eb;padding:10px;font-size:12px;margin-bottom:12px}
 .scan-start-card .capture-button{margin-top:8px}
 @media(max-width:1000px){.scan-workspace{grid-template-columns:1fr}.scan-camera-preview{max-height:none}.scan-studio{padding:16px}.scan-guide{max-width:none}}
-@media(max-width:700px){.mode-switch{display:none}.scan-header{flex-direction:column}.scan-session-footer{flex-direction:column}.scan-camera-column .camera-actions{grid-template-columns:1fr}}
+@media(max-width:700px){.mode-switch{gap:2px}.mode-button{padding:6px 7px;font-size:9px}.scan-header{flex-direction:column}.scan-session-footer{flex-direction:column}.scan-camera-column .camera-actions{grid-template-columns:1fr}}
+
+.app-shell.scan-mode{grid-template-rows:68px minmax(0,1fr)}
