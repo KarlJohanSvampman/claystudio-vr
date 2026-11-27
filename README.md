@@ -9,7 +9,9 @@ A PC-first stop-motion and 3D capture workbench with VR as a spatial interface.
 - Stop-motion capture, local IndexedDB storage, timeline, onion skin and playback
 - Guided photogrammetry capture studio with 24 equator views and 12 elevated views
 - Scan sessions and uploaded photographs stored under `/storage/scans`
-- Resume saved scan sessions after restarting the browser\n- Server-side image validation for format, minimum resolution and blur warnings\n- Export complete scan photo sets as ZIP archives with angle metadata and a manifest
+- Resume saved scan sessions after restarting the browser
+- Server-side image validation for format, minimum resolution and blur warnings
+- Export complete scan photo sets as ZIP archives with angle metadata and a manifest
 
 ### 3D scanning workflow
 1. Open **3D Scan** in the desktop workspace.
