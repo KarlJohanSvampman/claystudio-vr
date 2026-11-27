@@ -5,7 +5,7 @@ A PC-first stop-motion and 3D capture workbench with VR as a spatial interface.
 ## Current MVP
 - React + TypeScript + Three.js studio worktable
 - FastAPI backend and health endpoint
-- Browser camera access through `getUserMedia`
+- Browser camera access through `getUserMedia`, including selection and hot-plug refresh for external cameras exposed by the browser
 - Stop-motion capture, local IndexedDB storage, timeline, onion skin and playback
 - Guided photogrammetry capture studio with 24 equator views and 12 elevated views
 - CPU-based COLMAP structure-from-motion reconstruction with camera-pose estimation and a colored sparse point cloud
@@ -17,7 +17,7 @@ A PC-first stop-motion and 3D capture workbench with VR as a spatial interface.
 
 ### 3D scanning workflow
 1. Open **3D Scan** in the desktop workspace.
-2. Create a scan session and connect a webcam or supported camera.
+2. Create a scan session, choose a camera input, then connect a webcam or supported external camera. Plug-and-play USB webcams and HDMI capture cards that appear as browser video devices are supported; direct DSLR control depends on the camera manufacturer's software/driver and is not provided by the browser.
 3. Keep the object stationary. Move the camera around it, keeping distance, focus and lighting as consistent as possible.
 4. Capture the 24 equator positions, moving the camera about 15 degrees around the object between shots.
 5. Capture the optional 12 elevated views, raising the camera and angling it down while maintaining overlap.
@@ -48,7 +48,7 @@ npm install
 npm run dev
 ```
 
-The frontend defaults to API base URL http://localhost:8000.
+The frontend defaults to API base URL http://localhost:8000. Camera selection is available in both Animation and 3D Scan. Connect the camera once to grant browser permission; the device list then shows available camera inputs. If a camera is connected or removed while the app is open, the list refreshes automatically. Use a UVC-compatible USB camera or capture card for the broadest compatibility.
 
 ## Docker
 From the repository root:
